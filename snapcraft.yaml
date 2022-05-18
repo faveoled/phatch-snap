@@ -1,0 +1,111 @@
+name: phatch-gui
+summary: Photo Batch Processor in Python
+description: |
+  Phatch is a simple to use cross-platform GUI Photo Batch Processor which handles all popular image formats and can duplicate (sub)folder hierarchies. Phatch can batch resize, rotate, rename, ... and more in minutes instead of hours or days if you do it manually. Phatch will also support a console version in the future to batch photos on webservers.
+  
+  Note: this application is not maintained anymore.
+version: 0.2.7
+grade: stable
+confinement: strict
+base: core18
+license: GPL-3.0
+icon: snap/gui/phatch-gui.png
+
+
+package-repositories:
+  - type: apt
+    components: [main, universe]
+    suites: [trusty]
+    key-id: 78E1918602959B9C59103100F1831DDAFC42E99D
+    url: http://archive.ubuntu.com/ubuntu
+
+parts:
+
+  desktop-gtk2:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: gtk
+    plugin: make
+    make-parameters: ["FLAVOR=gtk2"]
+    build-packages:
+      - build-essential
+      - libgtk2.0-dev
+    stage-packages:
+      - libxkbcommon0  # XKB_CONFIG_ROOT
+      - ttf-ubuntu-font-family
+      - dmz-cursor-theme
+      - light-themes
+      - adwaita-icon-theme
+      - gnome-themes-standard
+      - shared-mime-info
+      - libgtk2.0-0
+      - libgdk-pixbuf2.0-0
+      - libglib2.0-bin
+      - libgtk2.0-bin
+      - unity-gtk2-module
+      - locales-all
+      - libappindicator1
+      - xdg-user-dirs
+      - ibus-gtk
+      - libibus-1.0-5
+
+  phatch:
+    plugin: nil
+    stage-packages:
+      - findutils
+      - locate
+      - phatch
+    override-prime: |
+      snapcraftctl prime
+      ln -s locate.findutils usr/bin/locate || echo
+    organize:
+      usr/lib/python2.7/dist-packages/PIL: usr/lib/python2.7/dist-packages/PIL5
+      usr/share/doc/python-pil: usr/share/doc/python-pil5
+      usr/include/python2.7/ImDib.h: usr/include/python2.7/ImDib5.h
+      usr/include/python2.7/ImPlatform.h: usr/include/python2.7/ImPlatform5.h
+      usr/include/python2.7/Imaging.h: usr/include/python2.7/Imaging5.h
+
+    after: [desktop-gtk2]
+
+  python-pil:
+    plugin: dump
+    source: http://launchpadlibrarian.net/171391128/python-pil_2.3.0-1ubuntu3_amd64.deb
+    source-type: deb
+    after: [phatch]
+
+apps:
+  phatch-gui:
+    command: bin/desktop-launch $SNAP/usr/bin/phatch
+    desktop: usr/share/applications/phatch.desktop
+    environment:
+      PATH: $SNAP/usr/bin:$SNAP/bin/:$PATH
+      PYTHONPATH: $SNAP/usr/share/phatch/:$SNAP/usr/lib/python2.7/site-packages:$SNAP/usr/lib/python2.7/dist-packages:$PYTHONPATH
+      # Fallback to XWayland if running in a Wayland session.
+      DISABLE_WAYLAND: 1
+    plugs:
+      - x11
+      - unity7
+      - home
+      - network
+      - desktop
+      - desktop-legacy
+      - gsettings
+      - removable-media
+
+
+plugs:
+  gtk-2-engines:
+    interface: content
+    target: $SNAP/lib/gtk-2.0
+    default-provider: gtk2-common-themes
+  gtk-2-themes:
+    interface: content
+    target: $SNAP/data-dir/themes
+    default-provider: gtk-common-themes
+  icon-themes:
+    interface: content
+    target: $SNAP/data-dir/icons
+    default-provider: gtk-common-themes
+  sound-themes:
+    interface: content
+    target: $SNAP/data-dir/sounds
+    default-provider: gtk-common-themes
