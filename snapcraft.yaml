@@ -11,6 +11,9 @@ base: core18
 license: GPL-3.0
 icon: snap/gui/phatch-gui.png
 
+architectures:
+  - build-on: amd64
+  - build-on: i386
 
 package-repositories:
   - type: apt
@@ -68,7 +71,9 @@ parts:
 
   python-pil:
     plugin: dump
-    source: http://launchpadlibrarian.net/171391128/python-pil_2.3.0-1ubuntu3_amd64.deb
+    source:
+      - on amd64: http://launchpadlibrarian.net/171391128/python-pil_2.3.0-1ubuntu3_amd64.deb
+      - on i386: http://launchpadlibrarian.net/171390937/python-pil_2.3.0-1ubuntu3_i386.deb
     source-type: deb
     after: [phatch]
 
